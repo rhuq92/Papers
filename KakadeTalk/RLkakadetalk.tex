@@ -69,8 +69,10 @@
 \begin{document}
 \maketitle
 
-These are notes from a talk given by Dr. Sham Kakade. The talk can be accessed 
+These are notes from a talk given by Dr. Sham Kakade on November 2nd on some rather high-level concepts in reinforcement learning. The talk can be accessed 
 \href{http://www.fields.utoronto.ca/talks/Policy-Gradient-Methods-Curvature-and-Distribution-Shift}{\textbf{here}}.
+
+In this write-up, I'll provide a very brief conceptual overview of some ideas that Dr. Kakade deals with before diving into his talk.
 
 \section{What is reinforcement learning?}
 \textbf{Reinforcement learning} is an area of machine learning that is concerned with the behaviour of agents who are concerned with maximizing utility. In a sense, it is paradigmatically divergent from \textbf{supervised} \& \textbf{unsupervised} learning, which focus upon recognizing patterns within a given domain.
@@ -104,6 +106,28 @@ A policy is a (possibly randomized) mapping from a trajectory to an action. Thus
 \begin{equation*}
 \pi: \mathcal{H} \rightarrow \delta(\mathcal{A})
 \end{equation*}
+, where $\mathcal{H}$ is the set of all possible trajectories (of all lengths) and $\delta \mathcal{A}$ is the space of all probability distributions over $\mathcal{A}$. A stationary policy $\pi : \mathcal{S} \rightarrow \mathcal{A}$ specifies a decision making strategy based solely on the current state (that is $a_{t} \sim \pi \Cond{\cdot}{s_{t}} $). A determinstic stationary policy is of the form $\pi: \mathcal{S} \rightarrow \mathcal{A}$
+
+Now, we define \textbf{values} for general policies. For a fixed policy and a starting state $s_{0 = s}$, we define the value function $V_{m}^{\pi}: \mathcal{S} \rightarrow \mathbb{R}$ as the discounted sum of future rewards
+\begin{equation}\label{eqn:Values}
+V_{m}^{\pi}(s) = \E\left[ \sum\limits_{t = 0}^{\infty} \Cond{\gamma^{t}r(s_{t},a_{t})}{\pi, s_{0} = s}   \right]
+\end{equation}
+
+Where the expectation is computed with respect to the randomness of the trajectory, that is, the randomness in state-transitions and stochasticity of $\pi$. Since $r(s,a)$ is bounded between 0 \& 1, we have $0 \leq V_{m}^{\pi}(s) \leq 1/(1 - \gamma)$
+
+Similarly, the action-value (or Q-value) function $Q_{M}^{\pi} : \mathcal{S} \times \mathcal{A} \rightarrow \mathbb{R}$ is defined as 
+\begin{equation}\label{eqn:Q}
+Q_{m}^{\pi} = \E \left[\sum\limits_{t = 0}^{\infty} \Cond{r(s_{t},a_{t})}{\pi, s_{0} = s, a_{0} = a}    \right]
+\end{equation}
+, which is also bounded from below by 0 and above by $1/(1-\gamma)$
+
+\medskip
+
+The optimization that the agent aims to solve is to maximize $V_{M}^{\pi}$ by finding a policy $\pi$. The agent thus wants to maximize
+\begin{equation}\label{eqn:optvalues}
+\max\limits_{\pi} V_{M}^{\pi}(s)
+\end{equation}
+
 \section{What was Dr. Kakade talking about?}
 
 
