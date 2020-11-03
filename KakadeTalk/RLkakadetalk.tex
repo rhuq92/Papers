@@ -1,0 +1,116 @@
+\newcommand{\pt}[1]{\textcolor{red}{#1}}
+\documentclass[12pt,reqno]{amsart}
+\usepackage{amsmath}
+\usepackage{cancel}
+\usepackage{amssymb}
+\usepackage[left=3cm,top=3cm,right=3cm,bottom=3cm]{geometry}
+\usepackage{epsfig}
+\usepackage[normalem]{ulem}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage[textwidth=20mm]{todonotes}
+\usepackage{hyperref}
+\usepackage{eqnarray}
+\usepackage{mathtools}
+\usepackage{mathrsfs}
+\newtheorem{case}{Case}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+\usepackage{tcolorbox}
+\usepackage{hyperref}
+
+
+\usepackage{soul}
+\usepackage{tikz}
+\usetikzlibrary{backgrounds}
+\usetikzlibrary{intersections}
+
+%\usepackage{pgfplots}
+\usepackage{float}
+\usepackage{xcolor}
+\colorlet{shadecolor}{pink!69}
+%\usepackage{floatrow}
+% Table float box with bottom caption, box width adjusted to content. 
+%Using floatrow instead broke my algorithm
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+
+\newcommand{\Gnp}{\G(n,p)}
+
+\newcommand{\fancyP}{\mathscr{P}}
+
+\newcommand{\Cond}[2]{\bigm( {#1} \bigm\vert {#2}\bigm)}
+\newcommand{\G}{\mathbb{G}}
+\newcommand{\FancyG}{\mathcal{G}}
+\newcommand{\lineG}{\mathbb{G}}
+\newcommand{\Ebf}{\textit{{\textbf{E}}}}
+\newcommand\eps{\varepsilon}
+\newcommand{\E}{\mathbb E}
+\newcommand{\Z}{\mathbb Z}
+\newcommand{\Cov}{\mathbb C\textrm{ov}}
+\newcommand{\Var}{\mathbb V\textrm{ar}}
+\newcommand{\Prob}{\mathbf{P}}
+\newcommand{\Bin}{\mathrm{Bin}}
+\newcommand{\Geom}{\mathrm{Geom}}
+\newcommand{\Nn}{{\mathbb N}}
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+\newcommand{\rh}[1]{\textcolor{blue}{#1}}
+\usepackage{framed}
+
+%usage: \begin{frshaded} \end{frshaded}
+
+
+\title{Policy Gradient Methods, Curvature, and Distribution Shift}
+
+\date{November 2, 2020}
+\author{Sham Kakade}
+
+\begin{document}
+\maketitle
+
+These are notes from a talk given by Dr. Sham Kakade. The talk can be accessed 
+\href{http://www.fields.utoronto.ca/talks/Policy-Gradient-Methods-Curvature-and-Distribution-Shift}{\textbf{here}}.
+
+\section{What is reinforcement learning?}
+\textbf{Reinforcement learning} is an area of machine learning that is concerned with the behaviour of agents who are concerned with maximizing utility. In a sense, it is paradigmatically divergent from \textbf{supervised} \& \textbf{unsupervised} learning, which focus upon recognizing patterns within a given domain.
+
+Reinforcement learning is studied by scholars schooled in a multitude of different fields. Game theorists, control theorists, researchers in operations research, and statisticians, among others, study reinforcement learning. 
+
+Basic reinforcement is modeled as a Markov decision process (MDP), consisting of four elements:
+\begin{itemize}
+\item A set of environment and agent states, $\mathcal{S}$. Can be either finite or infinite. We assume it's finite or countably infinite.
+\item A set of actions $\mathcal{A}$ of an agent. Can be either finite or finite, but we typically assume it's finite.
+\item A transition function $P :\mathcal{S} \times \mathcal{A} \rightarrow \delta(\mathcal{S})$, where $\delta(\mathcal{S})$ is the space of probability distributions over $\mathcal{S}$. $P \Cond{s'}{s,a}$. In other words, it's the \textit{probability simplex}.
+\item $P_{a}(s,s') = \Pr\left(\mathcal{S}_{t+1}=s' \bigm\vert \mathcal{S}_{t} = s, a_{t} = a \right)$
+\item A feward function $r: \mathcal{S} \times \mathcal{A} \rightarrow [0,1]$. This is the agent's reward for taking action $a$ at state $s$.
+\item A discount factor $\gamma \in [0,1)$, which defines a horizon for the problem. Intuitively, $\gamma$ considers the tiem-scale of the pay-off (are we rewarding delayed gratification? In which case, $\gamma$ will be large. Are we rewarding immediate gratification? In which case, $\gamma$ will be small.)
+\item An initial state distribution $\mu \in \delta(\mathcal{S})$, which specifies how the initial state $s_{0}$ is generated.
+\end{itemize}
+
+A Markov decision process occurs over discrete steps of time $t$ with can be characterized with a state $s_{t}$ and an agent's action $a_{t}$. The goal of the agent is to learn a policy $\pi: A \times S \rightarrow [0,1]$, $ \pi(a,s) = \Pr\Cond{a_{t} = a}{s_{t} = s} $
+\section{What are policy methods?}
+In a given MDP $M = (\mathcal{S},\mathcal{A}, P, r, \gamma, \mu)$, the agent interacts with the environment according to the following protocol: the agent starts at $s_{0} ~ \mu$ \& at each time step $t = 0,1,2,\ldots,$ the agent takes an action $a_{t} \in \mathcal{A}$, obtains the immediate reward $r_{t}(s_{t},a_{t})$, and observes the next state $s_{t+1}$ sampled according to $s_{t+1} ~ P \Cond{\cdot}{s_{t},a_{t}}$
+
+The interaction record $\tau$ at time $t$,
+\begin{equation*}
+\tau_{t} = (s_{0},a_{0},r_{1} \ldots s_{t})5
+\end{equation*}
+is called the trajectory at time $t$ and includes the state at time $t$, $s_{t}$.
+
+A policy specifies a decision-making strategy in which the agent is informed by the history of their observations (in this sense, a Markov decision process should be considered conceptually different from a Markov chain in terms of agnosticity to history). 
+
+A policy is a (possibly randomized) mapping from a trajectory to an action. Thus,
+\begin{equation*}
+\pi: \mathcal{H} \rightarrow \delta(\mathcal{A})
+\end{equation*}
+\section{What was Dr. Kakade talking about?}
+
+
+
+\begin{thebibliography}{99}
+
+%\bibitem{label} #name, #titleofwork, #publisher, #edition, #source
+\bibitem{label} A.\ Agarwal, N.\ Jiang, S.M.\ Kakade, W.\ Sun; Reinforcement Learning: Theory and Algorithms; accessed October 27, 2020; available at \texttt{https://rltheorybook.github.io/}
+\end{thebibliography}
+\end{document}
