@@ -33,7 +33,10 @@
 %Using floatrow instead broke my algorithm
 
 \newtheorem{theorem}{Theorem}[section]
+\newtheorem{question}{Question}
+\newtheorem{defn}{Definition}
 \newtheorem{lemma}[theorem]{Lemma}
+\newtheorem*{namedtheorem}{Theorem}
 
 \newcommand{\Gnp}{\G(n,p)}
 
@@ -129,7 +132,32 @@ The optimization that the agent aims to solve is to maximize $V_{M}^{\pi}$ by fi
 \end{equation}
 
 \section{What was Dr. Kakade talking about?}
+\begin{shaded}
+\begin{defn}[The state space \& state variables]
+A \textbf{state variable} is one of the set of variables that are used to describe the "state" of a dynamical system -- it describes enough of a system to determine its future behaviour in the absence of any external forces affecting the system.
 
+The \textbf{state space} is the Euclidean space in which the variables on the axis are the state variables. It is a mathematical model of a physical system as a set of input, output,  and state varibles related by first-order differential equations or difference equations.
+\end{defn}
+\end{shaded}
+
+The tabular dynamic programming approach is commonly taken to describe a reinforcement learning problem:
+
+\begin{tabular}{|c|c|c|}
+\hline
+State $s$ & Action $a$ & State-action value $Q^{\pi}(s,a)$ \\
+\hline
+\ldots & \ldots & \ldots \\
+\hline
+\vdots & \vdots & \vdots \\
+\hline
+\ldots & \ldots & \ldots \\
+\hline
+\end{tabular}
+The third column consists of a policy and gives the reward. It's a one-step look-ahead (that is, it gives the reward for the next step after). If we could magically compute it for each row, we could update our policy to be greedy and it will converge quickly. Unfortunately, the table is very large.
+
+The RL approach is to generalize; instead of querying the entire table, we can take a sampling approach in order to find an optimal policy. Policy gradient methods are one such approach, which easily deal with large state/action spaces. The policy is directly parameterized (for instance, through a neural network) with the gradient easily computed with simulation-based methods. You don't need to know the model. In ML, it's common to directly optimize the quantity of interest. 
+
+\textit{Why} this is possible is an open-question: the gradients in supervised learning (SL) and reinforcement learning are very different. We don't care about non-convexity much in SL, which isn't the case in RL. In RL, the regions can have exponentially small gradients, with much higher-order regions being flat.
 
 
 \begin{thebibliography}{99}

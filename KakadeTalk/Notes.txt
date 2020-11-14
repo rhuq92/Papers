@@ -1,0 +1,30 @@
+Direct policy optimization is an approach within reinforcement learning.
+
+The Markov Decision Process is a typical framework within reinforcement learning. It consists of an agent, an environment, and possible actions. The policy \pi describes the actions an agent takes given the state of the system. The agent wants to maximize their reward, V, which starts at some state s_0. We're going to use the standard discounted learning for the optimized variable. 
+
+Tabular dynamic programming approach: 
+State s			|		Action a			|	state-action value Q^\pi(s,a)
+-----------------------------------------------------------------------------------------------------------------------
+			|						|		
+
+/Third column consists of policy and gives the reward. It's a one-step look ahead. If we could magically compute it for every row, we could update our policy to be greedy, and it will converge pretty quickly.
+This table is infinitely big, sadly.
+
+The RL approach is to generalize. Instead of querying the entire table, we can take a sampling approach in order to find an optimal policy. 
+
+Policy gradient methods are one such approach. They easily deal with large state/action spaces. You directly parameterize your policy (through, forinstance, a neural network). The gradient can be computed easily with simulation-based methods. You don't need to know the model.
+
+In ML, it is common practice to directly optimize the quantity of interest. 
+
+There are differences between the gradients in RL and SL (supervised learning). We don't care about non-convexity too much in SL, which is not the case in RL. The regions can have exponentially small gradients, with many higher-order regions being flat. 
+
+Problem in exploration: 
+
+Consider 1 action takes you to the left, another to the right. If you act randomly, you have a random walk, meaning it takes exponential time to reach the rightmost state. This holds even for exact gradients (the gradient is given with a closed form). 
+
+Why do RL methods work? This will provide us with insight on how to improve these methods.
+
+In this talk we look at global convergence of RL methods and provide generalization guarantees of nonconvex policy gradient methods. 
+
+We will start with a simple test case (small state spaces and exact gradients) before moving to large state spaces.
+	- What's a state space?
