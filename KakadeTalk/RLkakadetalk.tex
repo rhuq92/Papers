@@ -133,15 +133,24 @@ The optimization that the agent aims to solve is to maximize $V_{M}^{\pi}$ by fi
 
 \section{What was Dr. Kakade talking about?}
 \begin{shaded}
-\begin{defn}[The state space \& state variables]
+\begin{defn}[The state space \& state variables \& gradients]
 A \textbf{state variable} is one of the set of variables that are used to describe the "state" of a dynamical system -- it describes enough of a system to determine its future behaviour in the absence of any external forces affecting the system.
 
 The \textbf{state space} is the Euclidean space in which the variables on the axis are the state variables. It is a mathematical model of a physical system as a set of input, output,  and state varibles related by first-order differential equations or difference equations.
+
+The \textbf{gradient} $\nabla f(p)$ of a scalar-valued differential equation $f$ of several variables $(x_1,x_2, \ldots, x_n)$ is given as:
+\begin{equation}
+\nabla f(p) = \begin{bmatrix}
+\frac{\delta f}{\delta x_1}(p)\\
+\vdots\\
+\frac{\delta f}{\delta x_n}(p)
+\end{bmatrix}
+\end{equation}
 \end{defn}
 \end{shaded}
 
 The tabular dynamic programming approach is commonly taken to describe a reinforcement learning problem:
-
+\newline
 \begin{tabular}{|c|c|c|}
 \hline
 State $s$ & Action $a$ & State-action value $Q^{\pi}(s,a)$ \\
@@ -153,11 +162,136 @@ State $s$ & Action $a$ & State-action value $Q^{\pi}(s,a)$ \\
 \ldots & \ldots & \ldots \\
 \hline
 \end{tabular}
-The third column consists of a policy and gives the reward. It's a one-step look-ahead (that is, it gives the reward for the next step after). If we could magically compute it for each row, we could update our policy to be greedy and it will converge quickly. Unfortunately, the table is very large.
+\newline
+	The third column consists of a policy and gives the reward. It's a one-step look-ahead (that is, it gives the reward for the next step after). If we could magically compute it for each row, we could update our policy to be greedy and it will converge quickly. Unfortunately, the table is very large.
 
 The RL approach is to generalize; instead of querying the entire table, we can take a sampling approach in order to find an optimal policy. Policy gradient methods are one such approach, which easily deal with large state/action spaces. The policy is directly parameterized (for instance, through a neural network) with the gradient easily computed with simulation-based methods. You don't need to know the model. In ML, it's common to directly optimize the quantity of interest. 
 
 \textit{Why} this is possible is an open-question: the gradients in supervised learning (SL) and reinforcement learning are very different. We don't care about non-convexity much in SL, which isn't the case in RL. In RL, the regions can have exponentially small gradients, with much higher-order regions being flat.
+
+In this talk we look at global convergence of RL methods and provide generalization guarantees of nonconvex policy gradient methods.
+
+We will start with a simple test case (small state spaces and exact gradients) before moving to large state spaces.
+
+\begin{shaded}
+\begin{defn}
+A non-convex space is a space which isn't convex. That is, if for all points $x,y \in \mathbb{R}$, and any $\lambda \in [0,1]$, it is true that $\lambda x + (1-\lambda)y \in \mathbb{R}$, then $\mathbb{R}$ is convex.
+\end{defn}
+\end{shaded}
+
+An iterative method is called \textbf{locally convergent} if successive approximations are guaranteed to approach when the initial approximation is sufficiently close to the solution. An iterative method that converges for an arbitrary initial approximation is called \textbf{globally convergent}.
+
+This talk provides global convergence \& generalization guarantees of nonconvex policy gradient methods. 
+
+They start with small state spaces with exact gradients before moving to large state spaces. Dealing with large state spaces means we need to deal with generalization and distribution shift.
+
+\section{Small state spaces \& the "softmax" policy class}
+The softmax policy is the simplest way to parameterize the simplex
+
+What's the simplex?
+\begin{defn}
+        A simplex is a generalization of the notion of a triangle or tetrahedron to arbitrary dimensions.
+\end{defn}
+A policy class is, essentially, a set of policies.
+
+Softmax policies are of the form
+\begin{equation}
+\pi_\theta\theta{\Cond{a}{s}}=\frac{\displaystyle \exp(\theta_s,a)}{\displaystyle \sum_{a'}\exp(\theta_s,a')}
+\end{equation}
+\begin{equation}
+\pi_\theta{\Cond{a}{s}}
+\end{equation}
+The complete class contains every stationary policy.
+
+The policy optimization problem $\max_{\theta} V^{\pi_{\theta}}(s_0)$ is non-convex. If we can't find an optimal policy class with this simple problem, how can we find them for a more complicated problem?
+
+We're going to avoid sampling and assume we can get the exact gradients (that is, $\nabla V^{\pi_0}(s_0)$ is given exactly.
+
+Before we do that, we need to define the following:
+
+\begin{shaded}
+\begin{defn}[Gradient Descent]
+Gradient descent is a first-order (that is, it has at most linear error) iterative optimization algorithm for finding the local minumum of a differentiable function.
+\end{defn}
+\end{shaded}
+
+The softmax policy is the simplest way to parameterize the simplex
+
+What's the simplex?
+\begin{defn}
+        A simplex is a generalization of the notion of a triangle or tetrahedron to arbitrary dimensions.
+\end{defn}
+A policy class is, essentially, a set of policies.
+
+Softmax policies are of the form
+\begin{equation}
+\pi_\theta\theta{\Cond{a}{s}}=\frac{\displaystyle \exp(\theta_s,a)}{\displaystyle \sum_{a'}\exp(\theta_s,a')}
+\end{equation}
+\begin{equation}
+\pi_\theta{\Cond{a}{s}}
+\end{equation}
+The complete class contains every stationary policy.
+
+The policy optimization problem $\max_{\theta} V^{\pi_{\theta}}(s_0)$ is non-convex. If we can't find an optimal policy class with this simple problem, how can we find them for a more complicated problem?
+
+We're going to avoid sampling and assume we can get the exact gradients (that is, $\nabla V^{\pi_0}(s_0)$ is given exactly.
+
+Before we do that, we need to define the following:
+
+\begin{shaded}
+\begin{defn}[Gradient Descent]
+Gradient descent is a first-order (that is, it has at most linear error) iterative optimization algorithm for finding the local minumum of a differentiable function.
+\end{defn}
+\end{shaded}
+
+The rate could be exponentially slow in terms of state and the softmax can have very flat gradients. This means that finding the optimal policy could be exponentially slow in the number of states. It's because the softmax has a very flat gradient. EG if you go to some corner, the gradient could be very slow, so moving away from the corner can take a very long time.
+
+What if we try some sort of regularizatioin-penalty to bias ourselves from getting these flat gradients (possible if the policy is deterministic)? The simplest way to do this is to use log-barrier regularization.
+
+Instead of doing gradient descent on the spread-out measure, we can add a penalty that pushes us away from determinsitc policies. The average-log probability stops us from forming a policy that's too deterministic. This leads us to optimize the following:
+\begin{eqnarray}
+L_\lambda(\theta) &=& V^\theta(\mu) + \frac{\lambda}{SA}\sum\limits_{s,a}\log_{\pi_\theta}\Cond{a}{s}\\
+\theta  &\leftarrow& \theta + \eta \nabla L_\lambda(\theta)
+\end{eqnarray}
+
+Then, we get the following:
+\begin{shaded}
+\begin{theorem}[Global convergence: softmax + log barrier regularization]
+S: \# states, A:\# actions, H: Horizon = 1/(1-$\gamma$), where $\gamma$ is a function of $\eps$
+Suppose $\mu$ = uniform$_{s}$, and with appropriate settings of $\lambda \& \eta$, after $\frac{S^4 A^2 H^6}{\eps^2}$ iterations we have, for all $s$,
+\begin{equation}
+V^0(s) \geq V^*(s) -\eps
+\end{equation}
+\end{theorem}
+\end{shaded}
+
+To put it succinctly: they found that the policy gradient converges (polynomial time) pretty quickly for this simple case, as its non-convex.
+
+What's going on? The log-barrier plus the uniform distribution helps with conditioning problems. The log barrier regularization is the same as KL-regularization (different from entropy regularization) which allows for better convergence to a deterministic strategy.
+
+Another approach is to warp where we move along the simplex by preconditioning. Can we stretch the geometry out so we can move quickly when the gradient becomes flat?
+        We can do this with the Fisher information matrix (which measures the amount that an observable random variable X tells us about an unknown parameter $\theta$ of a distribution that models $X$).
+        For every state we have a Fisher matrix. We can take the expected Fisher metric over the states we tend to visit under the current distribution. So it's the Fisher matrix of the trajectories we follow. Running gradient descent on this preconditioner.
+        The update rule looks like a "soft" policy iteration update rule, where the probability of an action relatively to the exponent of Q. So what's happening with this non-convex update rule? There's no dependence on the starting distribution because of the preconditioning.
+
+Looking at the convergence rate, after the learning rate is appropriately set, for all states we get that we converge to the optimal state at the rate of 1/T (where T is the number of iterations). This has no dependence on the number of states, A, or the starting measure $\mu$. This is pretty fast (we usually have $1/\sqrt{T}$).
+
+We have some tools to think about these flat gradients. We understand this curvature issue. With exact gradients, a tabular approach converges, and with a preconditioner we can converge very quickly without dependence on S and A.
+
+How do we think about approximation/generalization (which isn't an issue in supervised learning)?
+
+How do we think about $\mu$ in an infinite state space?
+
+Optimization has roots in an expert-based analysis.                                                                                                                                                                                                                            
+
+\section{Large state spaces}
+
+
+We started with a softmax policy class: they are the log of a function. A log-linear policy class has features -- we say a function is linear in those policys. We can also think of the function f as a neural policy class (that is, it's a neural network).
+
+Dimension needs to be less than the number of possible states and actions (which means the dimension won't be too big).
+
+The log-linear class may not contain the optimal policy. There's a feature mapping into $\mathbb{R}^d$. The NPG update rule gives dimension-free convergence (convergence doesn't depend on the dimension). We can look at this update rule with a different policy class. We use an approximate soft policy rule: we fit the currect $Q$ value with our features.
 
 
 \begin{thebibliography}{99}
