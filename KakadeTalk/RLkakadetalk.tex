@@ -316,7 +316,85 @@ Instead of exact updates we can use samples, meaning we use samples for our upda
 
 It's important to talk about the natural policy-gradient, since that's what gives us the dimension-free convergence that we like.
 
-%41.58 -- Realizable case: NPG +log linear policy classes
+Let's begin with some assumptions:
+\begin{enumerate}
+\item Realizability: Suppose that $Q^\theta(s,a)$ is a linear function in $\phi(s,a)$ (it lives in the span of these features). This means our regression model is correct. There's a connection between optimization and value-based assumptions.\\
+\item Supervised learning error: Our estimate $\hat{w}^{t}$ has bounded regression error (say, due to sampling) 
+\begin{equation}
+E_{s,a\sim \smcond{d}{\pi,\mu}}\left[ (Q^\theta(s,a) - \hat{w}^t \cdot \phi_{s,a})^2 \right] \leq \eps_{stat}
+\end{equation}
+where $\eps_{stat}$ is our statistical error (which goes to 0 as we get more samples).\\
+\item Conditioning (i.e. "feature coverage"): $||\phi_{s,a}||^{2} \leq 1$ and define
+\begin{equation}
+\kappa = 1/ \sigma_{\min} (E_{s,a\sim \mu} \left[ \phi_{s,a} \phi_{s,a}^{T} \right]
+\end{equation}
+We can't expect this method to work if we start at a given starting state because of the flat-gradient problem. So we suppose our starting distribution has coverage over the covariance matrix of the features.\\
+\end{enumerate}
+\break
+\begin{shaded}
+\begin{theorem}
+
+A: \# actions, H: Horizon = 1/(1-$\gamma$), Norm bound: $||\hat{w}^{t}|| \leq W$
+\newline
+After $T$ the iterations, the NPG algorithm returns a $\pi$ such that
+\begin{equation}
+V^{T}(\rho) \geq V^{\star}(\rho) - HW \sqrt{\frac{2 \log A}{T}} + \sqrt{4AH^{3}\kappa\eps_{stat}}
+\end{equation}
+\end{theorem}
+\end{shaded}
+
+\bigskip
+\bigskip
+\bigskip
+\subsection{What happens when we drop the realizability assumption?}
+It's a lot to ask for $Q^{\theta}$ to be approximated and estimated with $\phi$.
+
+Let's revisit the sample-based procedure. The ways that approximation and estimation error appear in the RL setting is a bit subtle and different than how we think about these things in supervised learning. 
+
+The ways in which approximation and estimation error appear in RL is different than supervised learning.
+
+$L$ is a loss function. For a state-action distribution $\nu$ we define
+\begin{equation}
+L(w;\theta,\nu) := E_{s,a \sim \nu}\left[ (Q^{\pi_\theta}(s,a) -w \cdot \phi_{s,a})^2 \right]
+\end{equation}
+$\nu$ is the measure we use in our optimization. It's how we get our sample. We're minimizing $E_{s,a \sim \nu}$.
+%when we get samples
+The NPG update 
+\begin{enumerate}
+\item Approximate $Q^\theta$ with the features:
+\begin{equation}
+\hat{w}^t \approx \arg \min_w \hat{L}(w; \theta, d\smcond{\cdot}{\pi,\mu})
+\end{equation}
+where $d\smcond{\cdot}{\pi,\mu}$ is an "on-policy" distribution starting from $s_0, a_0 \sim \mu$. If it's not realizable, the minimum error of $\hat{L}$ may not be zero.\\
+\item Policy update: $\Cond{a}{s} \leftarrow \Cond{a}{s}\exp(w_\star \cdot \phi_{s,a}) /Z_s$ where $Z_s$ is the normalizing constant.\\
+\end{enumerate}
+$L$ is doing regression but we're assuming that there's approximation error.
+
+So we make two assumptions: 
+\begin{enumerate}
+\item Supervised learning error: Suppose the excess risk and approx error are bounded as: 
+\begin{eqnarray}
+&& L(w^{(t)}; \theta^{(t)}, d^{(t)}) - L(w^{(t)_\star}; \theta^{(t)}, d^{(t)}) \leq \eps_{\textrm{stat}} \\
+&& L(w^{(t)}; \theta^{(t)}, d^{(t)}) \leq \eps_{\textrm{approx}}\\
+\end{eqnarray} 
+\item Conditioning (i.e. "feature coverage"): $||\phi_{s,a}||^{2} \leq 1$ and define
+\begin{equation}
+\kappa = 1/ \sigma_{\min} (E_{s,a\sim \mu} \left[ \phi_{s,a} \phi_{s,a}^{T} \right]
+\end{equation}\\
+\end{enumerate}
+We know $\eps_{stat}$ goes to zero, since it will as we get zero as we get more data. $\eps_{approx}$ won't go to zero, since it's defined according to the approximation error from your current distribution. We keep updating our policy and the distribution keeps changing, but low approximation under one distribution doesn't apply to other distributions.
+
+\begin{shaded}
+\begin{theorem}
+A: \# actions, H: Horizon = 1/(1-$\gamma$)
+\newline
+After $T$ iterations, the NPG algorithm returns a $\pi$ such that:
+\begin{equation}
+V^{(T)}(s_0) \geq V^{\star}(s_0) - HW \sqrt{\frac{2 \log A}{T}} + \sqrt{4AH^3(\kappa \cdot \eps_{\textrm{stat}}} + ||\frac{d^\star}{\mu}||_\infty \cdot \eps_{\textrm{approx}}
+\end{equation}
+\end{theorem}
+\end{shaded}
+where $d^\star$ is the state-acttion distribution of any comparator policy $\pi^{\star}$ (we wanna do as well as $\pi^\star$). We need our approximation error to be akin to $\pi^\star$'s. Therefore we need the approximation error to be small under another distribution, so if there approximation error is large we're screwed. Hopefully our features allow us to have low approximation error. This is definitely weaker than realizability (note: it's the $\infty$ ration that's very problematic).
 \begin{thebibliography}{99}
 
 %\bibitem{label} #name, #titleofwork, #publisher, #edition, #source
