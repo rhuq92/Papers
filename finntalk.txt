@@ -1,3 +1,9 @@
+These are notes for a talk given by Chelsea Finn as part of the Fields Symposium on Machine Learning. The notes are quite technical. More information is available at: http://www.fields.utoronto.ca/talks/Principles-Tackling-Distribution-Shift-Pessimism-Adaptation-and-Anticipation
+
+Abstract:
+
+While we have seen substantial progress in machine learning, a critical shortcoming of current methods lies in handling distribution shift between training and deployment. Distribution shift is pervasive in real-world problems ranging from natural variation in the distribution over locations or domains, to shifts in the distribution arising from different decision making policies, to shifts over time as the world changes. In this talk, I'll discuss three general principles for tackling these forms of distribution shift: pessimism, adaptation, and anticipation. I'll present the most general form of each principle before providing concrete instantiations of using each in practice. This will include a simple method for substantially improving robustness to spurious correlations, a framework for quickly adapting a model to a new user or domain with only unlabeled data, and an algorithm that enables robots to anticipate and adapt to shifts caused by other agents.
+
 Distribution shift:
 
 There's a thing called distribution shift. It occurs when the distribution changes as the model is being deployed, causing the performance to drop.
