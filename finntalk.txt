@@ -1,0 +1,81 @@
+Distribution shift:
+
+There's a thing called distribution shift. It occurs when the distribution changes as the model is being deployed, causing the performance to drop.
+
+Tackling distribution shift:
+
+Three tools: Pessimism, adaptation, anticipation.
+
+--------Introducing more assumptions---------->
+
+Pessimism: Preparing for the worst case. We optimize for the worst-case distribution (given by the 'uncertainty set'). 
+    We train the model while assuming a crappy distribution. Sometimes, it can be too pessimistic.
+    Spurious correlations: Do CVaR DRO, Group DRO (distributionally robust optimization) produce models that are robust to spurious correlations?
+      Group DRO does well in some situations, but requires group labels (which is problematic, since we need to identify spurious labels.). 
+      Joint DRO doesn't work well in these problems because it's less directed at minority groups than group DRO. The problem with joint DRO is that it doesn't prioritize minority groups enough.
+      High level approach:
+        Stage 1: Identify examples where spurious correlations don't hold (ERM sucks with these examples)
+        Stage 2: Prioritize these examplesi
+
+  Complete algorithm for souping up ERM:
+    1. Train identification model g_\psi(x) via ERM
+    2. Compute error set as misclassified examples
+      E = {(x,y):g_psi(x) !neq y}
+    3. Upsample examples from E in train set
+    4. Train final model f_\theta on unpsampled dataset
+
+  Just train twice (JTT)
+
+  Implementing this algorithm improved ERM
+
+We want to compare results to ERM, joint DRO, LfF: representative recent approach with strong results.
+
+Model improved as a result of this.
+
+What if we remove majority, minority points from the error set? 
+  This caused performance to drop. Majority and minority points are helpful!
+  In the error set, the spruious attribute was more ambiguous than in identified points.
+
+Takeaway: We can achieve robustness to spurious correlations by including more ambiguous data points.
+
+Being pessimistic about the values of OOD states, and actions, helps us avoid visiting OOD states. RL can be more useful than supervised learning since we can avoid OOD states. 
+
+In summary: pessimism is useful for addressing spurious correlations and policy distribution shift. It makes few assumptions and can be analyzed theoretically.
+
+Adaptation: Say, you wanna learn a binary classifier. Sometimes, a distribution shift won't help because of variance. It might be better to train more than one model.
+
+Consider: federated learning. We want to build a federated handwriting recognition system. There can be possibly many different target domains, and we'll want to adapt on the fly to them with minimal dta, labels, and computational resources.
+
+Adapative risk minimization: At test time, we're given unlabeled data from new test domain. We want to adapt our model and infer labels. Assume: we have access to test inputs from one group, available in a batch or streaming.
+
+We'll separate the training data into domains (where did the data come from?) then train the model so it can adapt with only unlabeled examples. We need to adapt with only unlabeled data. We can use model-adnotistic meta learning with learned loss or meta-learning with a context variable.
+
+What if you don't have a way to adapt without known training groups?
+
+We can learn multiple solutions to the training examples, then adapt the solution set to the testing set.
+
+assumption1: we can adapt with a modest amount of data
+*2         : changes are local, so the optimal policy in M_test also does well in M_train. 
+
+How do you learn multiple solutions? You can learn a controllable space of diverse policies that can achieve return with \eps of optimal. The controallable space uses latent variables, the return uses constrained optimizaiton.
+
+We then roll out different policies with different perturbations, and then pick the best one :))
+
+If we plot performance as a function of how much the environment changes, all of the mdoels perform worse and worse. Some models drop off quicker than others. \
+
+Takeaway: small amount of data at test time can provide a large amount of leverage.
+
+Anticipation: distribution shift is changing over time. In RL settings, the distribution is continuously changing in a smooth matter. The idea is is that we can predict what the future distribution will look like.
+
+Takeaway: By modeling and predicting distribution shift, we can outperform models that assume the distribution will remain stationary.
+
+Key conceptual change: an agent's action can influence the latent variable z. We will predict future z not only from past z, but from the entire past trajectory.
+
+The model, when adapting, can actually influence the distribution. Supercool! This, in RL terms, is modeling across interactions.
+
+Takeaway: we can get ahead of the shift in predictably changing environments, and can even influence the shift in some environments.
+
+
+
+
+
